@@ -1,0 +1,10 @@
+// The current application uses mock auth and sample data, so no models are
+// needed yet. Add models only when a module requires persistent records.
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+}

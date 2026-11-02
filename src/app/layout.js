@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "AutoFlow GCC",
-  description: "AutoFlow GCC project starter",
+  description: "A connected automotive workspace for GCC dealerships and workshops",
 };
 
 export default function RootLayout({ children }) {
@@ -22,7 +22,7 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full bg-slate-50 font-sans text-slate-900 antialiased">{children}</body>
     </html>
   );
 }
