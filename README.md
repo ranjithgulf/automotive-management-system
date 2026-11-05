@@ -1,119 +1,32 @@
 # AutoFlow GCC
 
-Foundation for an automotive business management platform (repository: automotive-management-system).
+Bilingual public automotive showcase website built with Next.js App Router, JavaScript, React and Tailwind CSS. Zoho One is the planned operational business platform. This website does not recreate its CRM, workshop, inventory, finance, HR or administration functionality.
 
-Next.js App Router, JavaScript, React, Tailwind CSS, ESLint, and npm. Next.js provides the server runtime and future API endpoints. PostgreSQL is configured through Prisma for local development; Zoho One integration comes later.
+## Run
 
-## Run locally
-
-Use Node.js 24 LTS and npm (Prisma supports ^20.19, ^22.12, or >=24.0). From the project directory:
+Use Node.js 24 LTS and npm.
 
 ```sh
 npm install
 npm run dev
 ```
 
-Open http://localhost:3000 (Login is also available at `/login`). This frontend prototype needs no environment variables, database connection, or Zoho access.
-
-## Structure and boundaries
-
-```text
-src/
-  app/                  Pages, root layout, and routes
-    api/                Future Route Handlers
-    globals.css
-    layout.js
-    page.js
-  components/           Reusable UI components
-  lib/                  Shared utilities
-    db/                 Future server-only database client and persistence helpers
-  services/             Module service functions
-  hooks/                Reusable React hooks
-  config/               Application configuration
-    database.js         Server-only PostgreSQL configuration reader
-public/                 Static assets
-.env.example            Database and Zoho variable placeholders
-```
-
-Use the existing `@/*` alias for imports from `src/`. Empty folders are retained with `.gitkeep` files.
-
-Future Route Handlers belong in `src/app/api/<resource>/route.js`, using named HTTP method exports such as `GET` and `POST`. Keep handlers focused on request validation, calling server services, and producing HTTP responses. Keep business logic in services, database configuration in `src/config/database.js`, and connection/query code in `src/lib/db/`. There is no separate backend project and no API endpoint is implemented yet.
-
-As modules arrive, group service functions under `src/services/<module>/`. Keep browser request helpers separate from server services (for example, `client.js` and `server.js`). Browser helpers call the application's API; only server services access the database or Zoho. Mark files containing credentials, database operations, or external integration logic with `import "server-only"` to prevent Client Component imports. Next.js handles this marker internally; no additional package is required here.
-
-Keep browser-safe application settings separate from server-only configuration. Never pass database configuration or integration credentials to Client Components or return them from an API.
-
-## Local PostgreSQL and Prisma
-
-The ignored project-root .env file contains DATABASE_URL. The tracked .env.example contains placeholders only; copy it to .env on a new checkout and supply your own local credentials. Next.js loads .env for the server; Prisma CLI loads it through prisma.config.mjs. Do not prefix secrets with NEXT_PUBLIC_ or commit real credentials.
-
-Prisma 7.10.1 uses the PostgreSQL provider and the JavaScript prisma-client-js generator. Its matching client and PostgreSQL adapter are runtime dependencies, alongside pg and dotenv; the Prisma CLI is a development dependency.
-
-Files:
-
-- prisma/schema.prisma: provider and generator only. The current mock frontend requires no models, so no application tables are created.
-- prisma.config.mjs: JavaScript CLI configuration loading DATABASE_URL from .env.
-- src/config/database.js: server-only connection configuration.
-- src/lib/db/prisma.js: lazy, reusable server-only Prisma Client and pool, reused across development reloads. Import getPrisma() from @/lib/db/prisma in future server services or Route Handlers.
-- scripts/db-check.mjs: read-only connectivity and table-list diagnostic through Prisma Client. No table data or credentials are printed.
-
-Commands (from this directory):
-
-```sh
-npm run db:validate
-npm run db:generate
-npm run db:check
-npm run db:push
-npm run db:check
-```
-
-The configured local database was inspected before pushing: it contained no application tables. Prisma validation and client generation succeeded; db push reported that the database was already in sync. No reset, drop, deletion, seed, or data-loss flag was used.
-
-For future modules, inspect existing tables and review changes before db:push. Never use --force-reset or --accept-data-loss to bypass warnings. Adopt reviewed migrations when persistent module schemas are introduced. Regenerate Prisma Client after schema changes and after a clean npm install.
-
-The frontend prototype does not open a database connection; it still uses mock authentication and sample data. Zoho variables remain unused, and no Zoho calls are made.
-
-## Module development workflow
-
-Develop one module at a time:
-
-1. Complete its frontend using realistic local sample data, scoped to that module.
-2. Add its Next.js backend and PostgreSQL persistence when the UI is ready.
-3. Connect it to Zoho after credentials and access are available.
-
-The entry pages and dashboard use fictional local sample data. Business modules remain placeholders. No real authentication, database connections, or Zoho integration is implemented.
-
-## Verification
+Open http://localhost:3000, /en/, or /ar/.
 
 ```sh
 npm run lint
+npm run test:website
 npm run build
+npm start
 ```
 
-Use `npm start` to serve a completed production build. The starter's default Google fonts require network access during a fresh build. Next.js, Tailwind, and ESLint configuration remain unchanged.
+The build creates out/ for Cloudflare Pages. npm start serves that static output locally. Forms are clearly labelled demonstrations: no messages, appointments or customer data are sent or stored. Vehicle listings, product information and photographs are illustrative. Zoho and SalesIQ are not connected.
 
-## Entry experience and dashboard prototype
+## Documentation
 
-- Routes: /login, /create-account, /forgot-password, /dashboard, and the module placeholders listed in src/config/navigation.js.
-- Login: choose Fill demo credentials, then Login. Any valid email and password of at least eight characters also opens the demo. Use invented details.
-- Authentication simulation: src/services/mock-auth.js. Only a demo marker, display name, and email are stored in browser storage; passwords are never stored or sent. Remember me uses localStorage; otherwise the demo uses sessionStorage. Sign out clears both.
-- This client-side navigation guard is not security or authorization. A user can modify browser storage. Implement trusted server-side authentication and authorization before adding private data or real operations.
-- Registration validates the form but creates no account, roles, permissions, or session. Password recovery simulates submission and sends no email.
-- Use offline@autoflow.example with otherwise valid details on any form to preview a simulated request failure.
-- Sample records: src/lib/sample-data/dashboard.js. The dashboard shows a fixed fictional October 2026 snapshot in AED; its relative activity times are illustrative. The branch selector filters the complete dashboard.
-- Module search, notifications, profile/sign-out, mobile navigation, and read-only approval previews work locally. Notification read state resets on reload.
-- The English/Arabic switch previews RTL layout and translates primary navigation and headings. Sample records and secondary UI remain English; full localization is future work.
-- UI components live in src/components/ui, src/components/auth, src/components/workspace, and src/components/dashboard. Styles use Tailwind utilities; globals.css contains only Tailwind setup and font theme tokens.
-- No UI libraries were added. Prisma dependencies support the separate database foundation. Existing Next.js configuration is preserved.
+- [Rebuild report, file structure, data boundaries and deployment setup](docs/website-rebuild.md)
+- [Generated image assets and original prompts](docs/visual-assets.md)
 
-Pending: real authentication and access control, module-specific frontend and persistence models/migrations, full Arabic localization, and Zoho credentials and integration.
+Set the optional SITE_URL build variable to the verified public origin before publication, so canonical URLs, social images and sitemap entries use the real domain. No company history, contact information, verified availability, integrations or domain details are invented.
 
-Workspace pages explicitly opt out of Next.js instant-navigation validation because the mock navigation gate waits for browser storage before mounting their content. Revisit this when real server-side authentication replaces the demo. The global Next.js configuration remains unchanged.
-
-## Responsive navigation and blueprint
-
-The sidebar now follows all 13 blueprint sections, with 58 leaf links and 11 retained module overview routes. See [the complete navigation review](docs/navigation-review.md) for previously available links, additions, and retained route mappings. The configuration drives the sidebar, breadcrumbs, search, and catch-all placeholder route generation.
-
-Mobile and tablet widths use a collapsible drawer; widths of 1024px and above show the full sidebar. KPI cards move from one to two to four columns. Charts use readable horizontal bars below 640px; the branch table has a keyboard-accessible horizontal scroll region. Touch targets, forms, dialogs, and popups adapt down to 320px. All styles remain Tailwind utilities.
-
-Run npm run test:navigation to verify complete blueprint coverage, unique labels and destinations, and preservation of previous routes.
+The existing ignored .env and dormant PostgreSQL/Prisma foundation were retained. No database tables or business records are created by this website. Real Zoho submission requires confirmed configuration and an approved secure server endpoint.

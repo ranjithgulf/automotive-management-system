@@ -5,13 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node scripts/serve-website.mjs",
     "lint": "eslint",
     "db:validate": "prisma validate",
     "db:generate": "prisma generate",
     "db:check": "node scripts/db-check.mjs",
     "db:push": "prisma db push",
-    "test:navigation": "node --test tests/navigation.test.mjs"
+    "test:website": "node --test tests/website.test.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.1",
