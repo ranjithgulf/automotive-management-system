@@ -1,7 +1,7 @@
 // Local static-export preview only; this is not an application backend.
 import { createServer } from "node:http";
 import { createReadStream, existsSync, statSync } from "node:fs";
-import { resolve, sep, extname } from "node:path";
+import { resolve, sep, extname, basename, dirname } from "node:path";
 
 const root = resolve("out");
 if (!existsSync(root)) { console.error("Run npm run build before npm start."); process.exit(1); }
@@ -15,6 +15,16 @@ const server = createServer((request, response) => {
     if (file !== root && !file.startsWith(root + sep)) throw new Error("Invalid path");
     if (existsSync(file) && statSync(file).isDirectory()) file = resolve(file, "index.html");
     if (!existsSync(file) && existsSync(resolve(file, "index.html"))) file = resolve(file, "index.html");
+    // Next.js 16.4.3 emits nested segment filenames on Windows, while the
+    // browser requests their dot-separated form. Serve the existing file;
+    // Linux/Cloudflare exports already have the correct flat filename.
+    if (sep === "\\" && !existsSync(file) && basename(file).startsWith("__next.") && file.endsWith(".txt")) {
+      const parts = basename(file).slice(0, -4).split(".");
+      if (parts.length > 2 && parts.every((part) => /^[a-zA-Z0-9_$@!-]+$/.test(part))) {
+        const nested = resolve(dirname(file), parts.slice(0, 2).join("."), ...parts.slice(2, -1), parts.at(-1) + ".txt");
+        if (existsSync(nested)) file = nested;
+      }
+    }
   } catch { file = ""; }
   if (!file || !existsSync(file) || !statSync(file).isFile()) {
     response.statusCode = 404;

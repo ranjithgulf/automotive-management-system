@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { dictionaries } from "../src/lib/website/dictionaries.js";
-import { locales, mainNavigation, websitePages, pagePath } from "../src/config/website.js";
+import { locales, mainNavigation, websitePages, pagePath, siteOrigin } from "../src/config/website.js";
 import { vehicles, services, solutions, parts } from "../src/lib/mock-data/website.js";
 import { filterVehicles } from "../src/services/website/vehicles.service.js";
 import { formFields, validateEnquiry, normalizePhone } from "../src/lib/website/forms.js";
@@ -96,4 +96,22 @@ test("SEO does not invent an origin and uses the configured locale and vehicle p
 
 test("old internal routes, mock workflows and operational APIs have been removed", () => {
   for (const path of ["src/app/(auth)", "src/app/(workspace)", "src/app/api/sales", "src/services/sales", "src/components/workspace", "src/components/sales"]) assert.equal(existsSync(path), false, path);
+});
+
+test("public site origin rejects unsafe or non-origin configuration", () => {
+  const previous = process.env.SITE_URL;
+  try {
+    for (const value of ["", "not-a-url", "javascript:alert(1)", "file:///tmp/site", "https://user:password@autoflow.example", "https://autoflow.example/en/", "https://autoflow.example/?token=private", "https://autoflow.example/#private"]) {
+      process.env.SITE_URL = value;
+      assert.equal(siteOrigin(), null);
+      assert.equal(websiteMetadata("en").alternates, undefined);
+    }
+    for (const [value, expected] of [["https://autoflow.example/", "https://autoflow.example"], ["http://localhost:3000", "http://localhost:3000"]]) {
+      process.env.SITE_URL = value;
+      assert.equal(siteOrigin(), expected);
+    }
+  } finally {
+    if (previous === undefined) delete process.env.SITE_URL;
+    else process.env.SITE_URL = previous;
+  }
 });

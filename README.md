@@ -27,6 +27,8 @@ The build creates out/ for Cloudflare Pages. npm start serves that static output
 - [Rebuild report, file structure, data boundaries and deployment setup](docs/website-rebuild.md)
 - [Generated image assets and original prompts](docs/visual-assets.md)
 
-Set the optional SITE_URL build variable to the verified public origin before publication, so canonical URLs, social images and sitemap entries use the real domain. No company history, contact information, verified availability, integrations or domain details are invented.
+Cloudflare Pages settings: **Next.js (Static HTML Export)** preset, build command **`npm run build`**, output directory **`out`**, Node.js **24** (pinned in `.node-version`). Replace any OpenNext build override in Cloudflare; this checkout does not use an adapter or standalone server. See the [deployment setup](docs/website-rebuild.md#cloudflare-pages-preparation) for the exact settings and Workers/Pages distinction.
+
+Keep the optional `SITE_URL` build variable blank until Cloudflare provides the actual Pages deployment URL. Set that verified HTTPS origin and rebuild, so canonical URLs, social images and sitemap entries use the real domain. A custom domain can replace it once confirmed. Do not include credentials, paths, query strings or fragments. No company history, contact information, verified availability, integrations or domain details are invented.
 
 The existing ignored .env and dormant PostgreSQL/Prisma foundation were retained. No database tables or business records are created by this website. Real Zoho submission requires confirmed configuration and an approved secure server endpoint.

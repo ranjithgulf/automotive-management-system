@@ -6,5 +6,12 @@ export const localize = (value, locale = "en") => typeof value === "object" && v
 export function siteOrigin() {
   const candidate = process.env.SITE_URL;
   if (!candidate) return null;
-  try { const url = new URL(candidate); return ["https:", "http:"].includes(url.protocol) ? url.origin : null; } catch { return null; }
+  try {
+    const url = new URL(candidate);
+    // Only an origin belongs in public metadata. Never accept credentials,
+    // paths, query strings, or fragments from a mistaken environment value.
+    if (!["https:", "http:"].includes(url.protocol)
+      || url.username || url.password || url.pathname !== "/" || url.search || url.hash) return null;
+    return url.origin;
+  } catch { return null; }
 }
