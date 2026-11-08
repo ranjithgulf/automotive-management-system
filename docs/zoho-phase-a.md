@@ -155,7 +155,7 @@ All .env.example assignments remain empty. The valid local .env was preserved un
 
 ZOHO_API_BASE_URL from the earlier placeholder design is not a Phase A setting; the verified name is ZOHO_API_DOMAIN. The local environment file is not automatically migrated or overwritten.
 
-For Leads only, grant ZohoCRM.modules.leads.CREATE. Appointment mode additionally needs ZohoCRM.modules.contacts.READ, ZohoCRM.modules.contacts.CREATE and ZohoCRM.modules.custom.CREATE. Desk mode additionally needs Desk.tickets.CREATE, Desk.contacts.READ and Desk.contacts.CREATE. Do not request optional inventory/settings scopes for this phase.
+For Leads only, grant ZohoCRM.modules.leads.CREATE. Appointment mode additionally needs ZohoCRM.modules.contacts.READ, ZohoSearch.securesearch.READ, ZohoCRM.modules.contacts.CREATE and ZohoCRM.modules.custom.CREATE. The search scope is required by the documented Contacts/search endpoint; see the current scope breakdown in [Phase B](zoho-phase-b.md#minimum-oauth-scopes). Desk mode additionally needs Desk.tickets.CREATE, Desk.contacts.READ and Desk.contacts.CREATE. Do not request optional inventory/settings scopes for this phase.
 
 The OAuth user owns records until an approved assignment rule exists. No rule ID is invented. Staff remain responsible for Deal conversion, Test_Drives, Quotes, discounts and confirmed availability. Automatic customer acknowledgement emails remain OFF in Zoho and are not promised by the website.
 

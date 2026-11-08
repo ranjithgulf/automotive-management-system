@@ -67,7 +67,7 @@ function fetcher(calls, override) {
     if (override) { const response = await override(target, options); if (response) return response; }
     if (target.endsWith("/siteverify")) return Response.json({ success: true, hostname: "autoflow.example", action: "autoflow-enquiry" });
     if (target.endsWith("/oauth/v2/token")) return oauthResponse();
-    if (target.includes("/Leads?lar_id=5413253000014544001")) return created();
+    if (target.includes("/Leads")) return created();
     throw new Error("Unexpected mocked network call");
   };
 }
@@ -125,7 +125,7 @@ test("all Lead requests use exact AutoFlow fields and workflow triggers; no Quot
     const result = await submitCrmEnquiry(p, env, { client: createZohoClient(env, { fetchImpl: fetcher(calls) }), now: NOW });
     assert.equal(result.confirmed, false);
     const writes = calls.filter((c) => c.url.includes("/crm/"));
-    assert.equal(writes.length, 1); assert.ok(writes[0].url.includes("/Leads?lar_id=5413253000014544001"));
+    assert.equal(writes.length, 1); assert.equal(writes[0].url, "https://www.zohoapis.com/crm/v8/Leads");
     const payload = JSON.parse(writes[0].body), r = payload.data[0];
     assert.equal(r.Layout.id, "5413253000014418033");
     assert.equal(r.Lead_Source, "Website Enquiry"); assert.equal(r.Lead_Status, "New Enquiry");
@@ -194,7 +194,17 @@ test("service searches email then phone, creates only a permitted Contact and Re
   const result = await submitServiceEnquiry(parse(packet("service")), env, { client, now: NOW });
   assert.equal(result.confirmed, false);
   const searches = calls.filter((c) => c.url.includes("/Contacts/search"));
-  assert.ok(searches[0].url.includes("email=")); assert.ok(searches[1].url.includes("phone="));
+  assert.deepEqual(searches.map((c) => c.url), [
+    "https://www.zohoapis.com/crm/v8/Contacts/search?email=review%40example.invalid",
+    "https://www.zohoapis.com/crm/v8/Contacts/search?phone=%2B96891234567",
+  ]);
+  for (const search of searches) {
+    assert.equal(search.method, "GET"); assert.equal(search.body, undefined);
+    assert.equal(search.headers.authorization, "Zoho-oauthtoken synthetic-access-token");
+  }
+  for (const write of calls.filter((c) => c.url.endsWith("/Contacts") || c.url.endsWith("/Service_Appointments"))) {
+    assert.equal(JSON.parse(write.body).lar_id, undefined);
+  }
   const contact = JSON.parse(calls.find((c) => c.url.endsWith("/Contacts")).body).data[0];
   assert.equal(contact.Layout.id, "5413253000000091033");
   assert.equal(contact.Primary_Contact_First_Name, "Demo"); assert.equal(contact.First_Name, undefined); assert.equal(contact.Lead_Source, undefined);
@@ -238,21 +248,21 @@ test("Pages endpoint applies Turnstile and atomic retry protection without retur
   const first = await handle({ request: req(p), env }); assert.equal(first.status, 200);
   assert.deepEqual(await first.json(), { ok: true, delivered: true, confirmed: false });
   const repeated = await handle({ request: req({ ...p, turnstileToken: "fresh-synthetic-token" }), env });
-  assert.equal(repeated.status, 200); assert.equal(calls.filter((c) => c.url.includes("/Leads?lar_id=5413253000014544001")).length, 1);
+  assert.equal(repeated.status, 200); assert.equal(calls.filter((c) => c.url.includes("/Leads")).length, 1);
   assert.equal(calls.filter((c) => c.url.endsWith("/siteverify")).length, 1);
   const metadata = JSON.stringify([...storage.entries]);
   assert.ok(!metadata.includes(p.values.email)); assert.ok(!metadata.includes(p.values.mobile)); assert.ok(!metadata.includes(p.values.message));
   assert.deepEqual(logs, []);
   const other = packet("quotation"); other.values.email = p.values.email;
   assert.equal((await handle({ request: req(other), env })).status, 200);
-  assert.equal(calls.filter((c) => c.url.includes("/Leads?lar_id=5413253000014544001")).length, 2); // Distinct enquiries always insert.
+  assert.equal(calls.filter((c) => c.url.includes("/Leads")).length, 2); // Distinct enquiries always insert.
 });
 
 test("concurrent copies of the same submission can create at most one Lead", async () => {
   const env = envFor(); addGuard(env); const calls = [], handle = handlerFor(fetcher(calls)), p = packet();
   const responses = await Promise.all([handle({ request: req(p), env }), handle({ request: req(p), env })]);
   assert.ok(responses.some((r) => r.status === 200)); assert.ok(responses.every((r) => [200, 409].includes(r.status)));
-  assert.equal(calls.filter((c) => c.url.includes("/Leads?lar_id=5413253000014544001")).length, 1);
+  assert.equal(calls.filter((c) => c.url.includes("/Leads")).length, 1);
 });
 
 test("guard rate-limits per hashed IP and refuses nonce reuse with a different payload", async () => {
@@ -266,9 +276,9 @@ test("guard rate-limits per hashed IP and refuses nonce reuse with a different p
 
 test("unresolved write outcomes block subsequent retries without another Zoho create", async () => {
   const env = envFor(); addGuard(env); const calls = [];
-  const handle = handlerFor(fetcher(calls, async (url) => url.includes("/Leads?lar_id=5413253000014544001") ? new Response("ambiguous", { status: 500 }) : undefined)), p = packet();
+  const handle = handlerFor(fetcher(calls, async (url) => url.includes("/Leads") ? new Response("ambiguous", { status: 500 }) : undefined)), p = packet();
   const first = await handle({ request: req(p), env }); assert.equal(first.status, 503); assert.equal((await first.json()).code, "result_unknown");
-  assert.equal((await handle({ request: req(p), env })).status, 409); assert.equal(calls.filter((c) => c.url.includes("/Leads?lar_id=5413253000014544001")).length, 1);
+  assert.equal((await handle({ request: req(p), env })).status, 409); assert.equal(calls.filter((c) => c.url.includes("/Leads")).length, 1);
 });
 
 test("wrong Turnstile hostname/action cannot reach OAuth or a record API", async () => {
@@ -366,12 +376,12 @@ test("canonical retry fingerprints ignore JSON property ordering and refreshed c
   assert.equal((await handle({ request: req(p), env })).status, 200);
   p.values = Object.fromEntries(Object.entries(p.values).reverse()); p.turnstileToken = "another-synthetic-token";
   assert.equal((await handle({ request: req(p), env })).status, 200);
-  assert.equal(calls.filter((x) => x.url.includes("/Leads?lar_id=5413253000014544001")).length, 1);
+  assert.equal(calls.filter((x) => x.url.includes("/Leads")).length, 1);
 });
 
 test("provider validation diagnostics never echo secrets or full provider bodies", async () => {
   const env = envFor(); addGuard(env); const calls = [], logs = [];
-  const handle = handlerFor(fetcher(calls, async (url) => url.includes("/Leads?lar_id=5413253000014544001")
+  const handle = handlerFor(fetcher(calls, async (url) => url.includes("/Leads")
     ? Response.json({ data: [{ code: "INVALID_DATA", status: "error", message: env.ZOHO_CLIENT_SECRET, details: { api_name: "Preferred_Branch", personal: "do-not-log" } }] }, { status: 400 }) : undefined), logs);
   const response = await handle({ request: req(packet()), env }); assert.equal(response.status, 422);
   const body = await response.text(); assert.ok(!body.includes(env.ZOHO_CLIENT_SECRET)); assert.ok(!JSON.stringify(logs).includes("do-not-log"));
@@ -426,7 +436,8 @@ for (const locale of ["en", "ar"]) for (const kind of ["contact", "vehicle", "qu
       assert.deepEqual(ticket.cf, { cf_af_ticket_category: "Complaint", cf_af_branch: "Muscat - Al Khuwair", cf_af_vehicle_plate_number: "Synthetic registration" });
       assert.equal(ticket.category, undefined); assert.equal(ticket.subCategory, undefined);
     } else {
-      assert.equal(new URL(writes[0].url).searchParams.get("lar_id"), VERIFIED.leadAssignmentRule);
+      assert.equal(new URL(writes[0].url).search, "");
+      assert.equal(JSON.parse(writes[0].body).lar_id, VERIFIED.leadAssignmentRule);
       assert.equal(JSON.parse(writes[0].body).data[0].Preferred_Language, locale === "ar" ? "Arabic" : "English");
     }
   });
@@ -478,8 +489,9 @@ test("Phase B: every branch Lead receives the verified assignment rule", async (
   for (const branch of BRANCHES) {
     const env = envFor(), calls = [], p = packet(); p.values.branch = branch;
     await submitCrmEnquiry(parse(p), env, { client: createZohoClient(env, { fetchImpl: fetcher(calls) }), now: NOW });
-    const write = calls.find((c) => c.url.includes("/Leads?"));
-    assert.equal(new URL(write.url).searchParams.get("lar_id"), "5413253000014544001");
+    const write = calls.find((c) => c.url.endsWith("/Leads"));
+    assert.equal(new URL(write.url).search, "");
+    assert.equal(JSON.parse(write.body).lar_id, "5413253000014544001");
     assert.equal(JSON.parse(write.body).data[0].Preferred_Branch, branch);
   }
 });
@@ -505,4 +517,42 @@ test("Phase B: rejected appointment after Contact creation is held for reconcili
   assert.equal((await first.json()).code, "result_unknown");
   assert.equal((await handle({ request: req(p), env })).status, 409);
   assert.equal(calls.filter((c) => c.url.endsWith("/Contacts")).length, 1);
+});
+
+test("Lead assignment uses the exact JSON envelope and query-free URL for every sales and fallback route", async () => {
+  for (const kind of ["contact", "vehicle", "quotation", "drive", "trade-in", "service", "support"]) {
+    const env = { ...envFor(), ZOHO_SERVICE_MODE: "lead", ZOHO_SUPPORT_MODE: "lead" };
+    const p = parse(packet(kind)), calls = [], input = buildLead(p, env, NOW);
+    const original = structuredClone(input);
+    const client = createZohoClient(env, { fetchImpl: fetcher(calls) });
+    if (kind === "service") await submitServiceEnquiry(p, env, { client, now: NOW });
+    else if (kind === "support") await submitDeskEnquiry(p, env, { client, now: NOW });
+    else await client.crm("Leads", { data: input });
+    const writes = calls.filter((call) => call.url.includes("/crm/v8/"));
+    assert.equal(writes.length, 1);
+    assert.equal(writes[0].url, "https://www.zohoapis.com/crm/v8/Leads");
+    assert.equal(writes[0].method, "POST");
+    assert.equal(writes[0].headers["content-type"], "application/json");
+    assert.deepEqual(JSON.parse(writes[0].body), { data: original.data, trigger: ["workflow"], lar_id: "5413253000014544001" });
+    assert.deepEqual(input, original); // The API boundary must not mutate a caller's payload.
+  }
+});
+
+test("Lead assignment accepts only the verified body rule and cannot leak to other modules", async () => {
+  const env = envFor(), calls = [], client = createZohoClient(env, { fetchImpl: fetcher(calls) });
+  for (const lar_id of ["999", null, 5413253000014544001]) {
+    await assert.rejects(client.crm("Leads", { data: { ...buildLead(parse(packet()), env, NOW), lar_id } }),
+      (error) => error.code === "integration_unconfigured");
+  }
+  for (const [module, data] of [
+    ["Contacts", buildContact(parse(packet("service")))],
+    ["Service_Appointments", buildAppointment(parse(packet("service")), env, "5413253000099999002", NOW)],
+  ]) {
+    await assert.rejects(client.crm(module, { data: { ...data, lar_id: VERIFIED.leadAssignmentRule } }),
+      (error) => error.code === "integration_unconfigured");
+  }
+  assert.equal(calls.length, 0);
+  const data = { ...buildLead(parse(packet()), env, NOW), lar_id: VERIFIED.leadAssignmentRule };
+  await client.crm("Leads", { data });
+  assert.deepEqual(JSON.parse(calls.find((call) => call.url.endsWith("/Leads")).body), data);
 });

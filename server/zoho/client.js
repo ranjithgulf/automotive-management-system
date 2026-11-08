@@ -21,11 +21,11 @@ function fenceWrite(system, path, data, env) {
   }
   const expected = { Leads: VERIFIED.leadsLayout, Contacts: VERIFIED.contactsLayout, Service_Appointments: VERIFIED.appointmentsLayout }[path];
   if (path === "Leads" ? env.ZOHO_ENABLE_CRM_LEADS !== "true" : serviceMode(env) !== "appointment") reject();
-  if (!data || Object.keys(data).some((key) => !["data", "trigger"].includes(key)) || !Array.isArray(data.data) || data.data.length !== 1) reject();
+  if (!data || Object.keys(data).some((key) => !["data", "trigger", ...(path === "Leads" ? ["lar_id"] : [])].includes(key)) || !Array.isArray(data.data) || data.data.length !== 1) reject();
   const record = data.data[0];
   if (!record || record.Layout?.id !== expected || Object.keys(record.Layout).some((key) => key !== "id")
     || Object.keys(record).some((key) => !crmFields[path]?.includes(key))) reject();
-  if (path === "Leads" && (record.Lead_Status !== "New Enquiry" || record.Lead_Source !== "Website Enquiry"
+  if (path === "Leads" && (data.lar_id !== VERIFIED.leadAssignmentRule || record.Lead_Status !== "New Enquiry" || record.Lead_Source !== "Website Enquiry"
     || JSON.stringify(data.trigger) !== '["workflow"]')) reject();
   if (path === "Service_Appointments" && (record.Appointment_Status !== "Requested" || !/^\d+$/.test(record.Customer?.id || "")
     || Object.keys(record.Customer).some((key) => key !== "id"))) reject();
@@ -49,14 +49,18 @@ export function createZohoClient(env, { fetchImpl = fetch, sleep = wait, now = D
     if (allowed[path] !== method) throw new ZohoError("integration_unconfigured");
     if (path === "Contacts/search" ? !query || Object.keys(query).length !== 1 || !Object.entries(query).every(([key, value]) => ["email", "phone"].includes(key) && typeof value === "string" && value.length > 0 && value.length <= 100) : query !== undefined) throw new ZohoError("integration_unconfigured");
     checkedSetting(env, "ZOHO_CRM_API_VERSION", "v8");
-    if (path === "Leads") checkedSetting(env, "ZOHO_CRM_LEAD_ASSIGNMENT_RULE_ID", VERIFIED.leadAssignmentRule);
+    if (path === "Leads") {
+      checkedSetting(env, "ZOHO_CRM_LEAD_ASSIGNMENT_RULE_ID", VERIFIED.leadAssignmentRule);
+      // Insert Records expects lar_id alongside data, never in the URL query.
+      // Preserve an explicit value so the write fence rejects unverified rules.
+      if (data && data.lar_id === undefined) data = { ...data, lar_id: VERIFIED.leadAssignmentRule };
+    }
     if (method === "POST") fenceWrite(system, path, data, env);
     if (system === "desk") { checkedSetting(env, "ZOHO_DESK_API_BASE", VERIFIED.deskBase); checkedSetting(env, "ZOHO_DESK_ORG_ID", VERIFIED.deskOrg); }
     let refreshed = false;
     for (let attempt = 0; attempt < 3; attempt++) {
       const token = await getAccessToken(env, { fetchImpl, sleep, now });
       const url = new URL((system === "crm" ? token.apiDomain + "/crm/v8" : VERIFIED.deskBase) + "/" + path);
-      if (system === "crm" && path === "Leads") url.searchParams.set("lar_id", VERIFIED.leadAssignmentRule);
       if (query) for (const [key, value] of Object.entries(query)) url.searchParams.set(key, value);
       let response;
       try {

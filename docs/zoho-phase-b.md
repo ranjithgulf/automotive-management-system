@@ -15,7 +15,7 @@ This guide supersedes the Phase A statements about a pending assignment rule, un
 
 ## Implemented behavior
 
-- Every Lead POST passes **lar_id=5413253000014544001** at the final server API boundary, including fallback Leads. The optional ZOHO_CRM_LEAD_ASSIGNMENT_RULE_ID override must match. No Owner is sent; the verified rule currently assigns all 12 branches to John Doe.
+- Every Lead POST passes **lar_id=5413253000014544001** as a top-level JSON body property alongside data at the final server API boundary, including fallback Leads; the URL has no lar_id query parameter. The optional ZOHO_CRM_LEAD_ASSIGNMENT_RULE_ID override must match. No Owner is sent; the verified rule currently assigns all 12 branches to John Doe.
 - Leads retain layout 5413253000014418033, Website Enquiry / New Enquiry, next approved Dubai working date and trigger ["workflow"]. Distinct enquiries always insert, preserving the duplicate-note workflow.
 - Vehicle enquiries, quotations, drives and trade-ins create Leads, never Quotes, Deals or Test_Drives. Trade-in uses the existing contact route with ?request=trade-in and bilingual request links.
 - Direct service booking is now the default implementation route, equivalent to ZOHO_SERVICE_MODE=appointment. Set disabled to explicitly disable it; lead remains configurable. Global demo, missing credentials and all security gates still prevent live writes.
@@ -52,7 +52,7 @@ The existing private guard remains required: atomic claims, five attempts per te
 
 1. Approve EN/AR consent wording/version, review draft Arabic labels, specify working weekdays (0=Sunday through 6=Saturday), optional holidays, and guard retention/rate policy. Decide whether support uses Desk. Direct Contact + Requested appointment is implemented as requested.
 2. Complete Zoho API-console MFA and create the approved Self Client. Exchange its grant outside the repository. For all implemented routes use:
-   ZohoCRM.modules.leads.CREATE,ZohoCRM.modules.contacts.READ,ZohoCRM.modules.contacts.CREATE,ZohoCRM.modules.custom.CREATE,Desk.tickets.CREATE,Desk.contacts.READ,Desk.contacts.CREATE.
+   ZohoCRM.modules.leads.CREATE,ZohoCRM.modules.contacts.READ,ZohoSearch.securesearch.READ,ZohoCRM.modules.contacts.CREATE,ZohoCRM.modules.custom.CREATE,Desk.tickets.CREATE,Desk.contacts.READ,Desk.contacts.CREATE.
    Omit Desk scopes if Desk is not approved; do not add inventory/settings scopes. Creating a dedicated licensed user requires separate business approval.
 3. In Pages project **automotive-management-system**, set encrypted secrets for Production and Preview: ZOHO_CLIENT_ID, ZOHO_CLIENT_SECRET, ZOHO_REFRESH_TOKEN, TURNSTILE_SECRET_KEY, ENQUIRY_GUARD_SECRET. The guard secret must be cryptographically random and at least 32 characters. Use dashboard Secret inputs or interactive prompts; never source files, chats or command arguments.
 4. Before deploying the guard, confirm the two existing Workers named in the handoff do not intercept gizoauto.com, and check the proposed guard name for conflicts. Deploy the approved private Worker/DO using workers/enquiry-guard/wrangler.jsonc. Set its encrypted ENQUIRY_GUARD_SECRET to the same value as Pages. Add a Pages **service binding named ENQUIRY_GUARD** to it. The Worker's STATE DO binding/migration comes from its config. Keep workers.dev/preview URLs disabled. Optional ZOHO_TOKEN_CACHE is a private KV binding. Resource bindings are not plain variables. No deployment occurred here.
@@ -120,3 +120,21 @@ Dependencies, lockfile, local secrets, deployment routes, Next.js configuration 
 | git diff --check | Pass |
 
 The existing Node module-type notice remains; no unrelated global module setting was changed. The production artifact stays demo with no fabricated widget/consent configuration. Real Turnstile challenges, remote routes/bindings, OAuth/API writes, actual assignment and notifications require owner acceptance above.
+
+## Minimum OAuth scopes
+
+Updated 8 November 2026 from the actual allowlisted client operations and [Zoho CRM v8 Search Records documentation](https://www.zoho.com/crm/developer/docs/api/v8/search-records.html).
+
+| Enabled route / operation | Minimum applicable scopes |
+| --- | --- |
+| Sales Lead insertion (including explicitly selected Lead fallbacks) | ZohoCRM.modules.leads.CREATE |
+| Service Contact search by email, then phone | ZohoCRM.modules.contacts.READ **and** ZohoSearch.securesearch.READ |
+| Service Contact creation when neither search matches | ZohoCRM.modules.contacts.CREATE |
+| Custom Service_Appointments insertion | ZohoCRM.modules.custom.CREATE |
+| Desk ticket insertion with inline contact | Desk.tickets.CREATE; retain Desk.contacts.CREATE for contact creation. The existing approved Desk.contacts.READ grant is retained, but this code makes no separate Desk contact-read request. |
+
+Contact searches use GET https://www.zohoapis.com/crm/v8/Contacts/search with exactly one URL-encoded email or phone query parameter, Authorization: Zoho-oauthtoken, and no request body. HTTP 204 means no match; one match is reused; ambiguous results stop the workflow. A newly created Contact's returned ID is used directly for the appointment, without waiting for search indexing.
+
+The supplied grants omitted ZohoSearch.securesearch.READ. Zoho documents that scope in addition to module READ for the actual search endpoint used here. OAuth credentials and grants were not changed or tested live by this correction. No Leads.READ, custom.READ, settings, or broad ALL scope is needed by the submission code; separate record read-back tooling would have its own scope requirements.
+
+Lead requests now use POST https://www.zohoapis.com/crm/v8/Leads and the JSON envelope { data: [record], trigger: ["workflow"], lar_id: "5413253000014544001" }, matching [Insert Records](https://www.zoho.com/crm/developer/docs/api/v8/insert-records.html). The write fence accepts only that verified rule for Leads and rejects lar_id on Contacts and Service_Appointments. Earlier mocked verification did not establish correct assignment-rule placement; the corrected tests assert the exact wire URL/body across sales and fallback routes.
