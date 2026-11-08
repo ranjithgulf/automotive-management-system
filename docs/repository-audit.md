@@ -1,3 +1,5 @@
+> Historical audit before published webforms. The custom API files and activation guidance below are superseded by [the current cleanup audit](webform-cleanup-audit-2026-11-08.md) and [published forms](AutoFlow_GCC_Zoho_Webforms.md).
+
 # AutoFlow GCC repository audit
 
 Date: 5 November 2026. Baseline: ac3fa07. Scope: this AutoFlow checkout only. This initial audit was recorded before cleanup and feature development. Local environment values were never printed. Source/import and asset references, routes, package scripts, current tracked files, and 93 text blobs reachable through available Git refs were inspected. There were no broken local imports among the tracked source files.

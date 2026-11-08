@@ -118,7 +118,7 @@ Manual owner actions:
 1. Set the approved SITE_URL in Cloudflare build variables before publishing. Keep Node 24/static output settings and existing private Functions bindings/secrets.
 2. Verify production HTTPS and preferred-host redirects in Cloudflare, including the intended handling of www and the Pages alias. These account/domain settings were not changed; do not redirect private previews blindly to production.
 3. Verify the domain property in Google Search Console and submit https://gizoauto.com/sitemap.xml after deployment. Public PageSpeed Insights, deployed redirect/header checks and field INP/CWV verification remain pending.
-4. Review production-only CSP/consent policies against the actual SalesIQ/Turnstile origins in staging before enforcement. Keep the existing live Zoho activation/consent/calendar decisions from [Phase B](zoho-phase-b.md).
+4. Review production-only CSP/consent policies against the actual SalesIQ and published-form origins before enforcement. The former custom API activation guidance is superseded by [the current webform configuration](AutoFlow_GCC_Zoho_Webforms.md).
 5. Review the compatible development-tool vulnerability fix. No live integrations, customer emails or account settings were enabled by this task.
 
 ## Verification and file inventory

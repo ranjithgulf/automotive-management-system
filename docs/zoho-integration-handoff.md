@@ -4,7 +4,7 @@
 
 > Update, 6 November 2026: the verified handoff has now been implemented for Phase A. See [zoho-phase-a.md](zoho-phase-a.md) for exact IDs/mappings, protected version-2 submissions and remaining activation requirements. The original readiness notes below describe the earlier unconfigured baseline.
 
-This document describes website-owned fields, not Zoho API field names. The frontend stays a Next.js static export on Cloudflare Pages. Business records belong in Zoho; the dormant local Prisma tooling is not an application backend.
+This document describes website-owned fields, not Zoho API field names. The frontend stays a Next.js static export on Cloudflare Pages. Business records belong in Zoho; the dormant local Prisma tooling is not an application backend and Frontend
 
 ## Readiness
 

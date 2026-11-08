@@ -5,10 +5,7 @@ import { dictionaries } from "../src/lib/website/dictionaries.js";
 import { locales, mainNavigation, websitePages, pagePath, siteOrigin } from "../src/config/website.js";
 import { vehicles, services, solutions, parts } from "../src/lib/mock-data/website.js";
 import { filterVehicles } from "../src/services/website/vehicles.service.js";
-import { formFields, validateEnquiry, normalizePhone } from "../src/lib/website/forms.js";
 import { websiteMetadata } from "../src/lib/website/metadata.js";
-import { submitEnquiry } from "../src/services/website/enquiries.service.js";
-import { submitAppointmentEnquiry } from "../src/services/website/appointments.service.js";
 
 function paths(value, prefix = "") {
   return Object.entries(value).flatMap(([key, item]) => typeof item === "object" ? paths(item, `${prefix}${key}.`) : [`${prefix}${key}`]).sort();
@@ -49,33 +46,6 @@ test("mock editorial data contains all requested verticals and service categorie
     assert.ok(item.title.en && item.title.ar && item.description.en && item.description.ar && item.benefit.en && item.benefit.ar);
   }
   for (const item of [...vehicles, ...solutions, ...parts]) assert.ok(existsSync(`public/images/${item.image}.webp`));
-});
-
-const options = { categories: [{ value: "general" }], types: [{ value: "general" }], methods: [{ value: "email" }], branches: [{ value: "dubai" }], services: [{ value: "maintenance" }] };
-const valid = { interest: "Toyota Camry", category: "general", subject: "A demonstration question", name: "Huda Al Suwaidi", email: "huda@example.com", phone: "+971 50 555 0101", type: "general", message: "Please share the next steps for a vehicle enquiry.", method: "email", brand: "Toyota", model: "Camry", branch: "dubai", service: "maintenance", date: "2026-11-03", time: "10:30" };
-test("all enquiry forms validate required fields, choices and contact information", () => {
-  for (const kind of ["contact", "vehicle", "drive", "quotation", "service", "support"]) {
-    const fields = formFields(kind);
-    assert.deepEqual(validateEnquiry(valid, fields, options, "2026-11-02"), {});
-    assert.ok(validateEnquiry({}, fields, options, "2026-11-02").name);
-    assert.equal(validateEnquiry({ ...valid, email: "invalid" }, fields, options, "2026-11-02").email, "invalidEmail");
-    assert.equal(validateEnquiry({ ...valid, phone: "abc" }, fields, options, "2026-11-02").phone, "invalidPhone");
-  }
-  assert.equal(validateEnquiry({ ...valid, type: "unsupported" }, formFields("contact"), options, "2026-11-02").type, "invalidChoice");
-  assert.equal(validateEnquiry({ ...valid, date: "2026-02-31" }, formFields("service"), options, "2026-11-02").date, "invalidDate");
-  assert.equal(validateEnquiry({ ...valid, date: "2026-11-01" }, formFields("drive"), options, "2026-11-02").date, "invalidDate");
-});
-
-test("mock enquiries do not claim delivery, storage or appointment confirmation", async () => {
-  assert.deepEqual(await submitEnquiry(valid), { mode: "demo", delivered: false, confirmed: false, stored: false });
-  assert.equal((await submitAppointmentEnquiry(valid)).confirmed, false);
-  await assert.rejects(submitEnquiry(valid, { simulateFailure: true }), /DEMO_SUBMISSION_FAILED/);
-});
-
-test("Arabic-Indic phone numbers validate without changing the visitor's input", () => {
-  const phone = "+\u0669\u0667\u0661 \u0665\u0660 \u0665\u0665\u0665 \u0660\u0661\u0660\u0661";
-  assert.equal(normalizePhone(phone), "+971 50 555 0101");
-  assert.deepEqual(validateEnquiry({ ...valid, phone }, formFields("contact"), options, "2026-11-02"), {});
 });
 
 test("SEO does not invent an origin and uses the configured locale and vehicle path", () => {

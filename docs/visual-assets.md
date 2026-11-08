@@ -26,3 +26,9 @@ Premium automotive catalog photograph, landscape 1536x1024. Unbranded midnight b
 
 Premium automotive parts catalog editorial photograph, landscape 1536x1024. A carefully styled flat lay of clean unbranded automotive service parts and cabin accessories on a warm charcoal workshop tabletop: brake disc and pads, pleated air filter, tire section, plain floor mat and generic maintenance containers without labels. Natural studio light, realistic materials, no text, no logos, no watermark, automotive photography suitable for a professional GCC showcase website. No prices or brand emblems.
 
+
+## Distinct Parts & Accessories card photos ? 8 November 2026
+
+Four new AI-generated illustrative product photos replace the repeated card image: parts-maintenance (filters, oil bottle and spark plugs), parts-brakes (disc, caliper and pads), parts-cabin (floor mats, organizer and phone mount), and parts-wheels (alloy wheel and tyres). No brands, labels or real inventory claims. Images use a neutral workshop backdrop and soft lighting.
+
+Each public/images/parts-*.webp asset has 320/480/768/1024px responsive variants and a 1536px base image. The asset optimization script includes all four names; existing shared parts.webp remains used elsewhere. Original generated PNGs remain in the Codex generated_images folder; only optimized WebP files are shipped.

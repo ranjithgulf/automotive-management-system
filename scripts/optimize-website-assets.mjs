@@ -3,7 +3,7 @@
 import sharp from "sharp";
 import { readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
-for (const name of ["hero", "parts", "sedan", "suv", "workshop"]) {
+for (const name of ["hero", "parts", "sedan", "suv", "workshop", "parts-maintenance", "parts-brakes", "parts-cabin", "parts-wheels"]) {
   const backup = new URL("../.asset-backups/2026-11-08/" + name + ".webp", import.meta.url);
   const source = await readFile(existsSync(backup) ? backup : new URL("../public/images/" + name + ".webp", import.meta.url));
   for (const width of [320, 480, 768, 1024]) {
