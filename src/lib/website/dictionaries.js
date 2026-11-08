@@ -43,7 +43,7 @@ export const dictionaries = {
       "copyright": "AutoFlow GCC. Automotive. Connected.",
       "footerText": "A customer-facing introduction to a connected automotive experience. Operational workflows belong in Zoho One.",
       "futureNote": "Solution capabilities are proposed. Zoho configuration and availability must be confirmed before use.",
-      "noContact": "Verified business contact details will be published here.",
+      "noContact": "Sample contact details for demonstration only.",
       "photoAlt": "Unbranded vehicle in a GCC-inspired automotive setting",
       "workshopAlt": "Illustrative vehicle inspection in a professional workshop"
     },
@@ -172,8 +172,26 @@ export const dictionaries = {
         "phone": "Business phone",
         "branches": "Branches & locations",
         "hours": "Business hours",
-        "pending": "To be confirmed",
-        "addressNote": "No verified business address has been provided. A location map will be added once confirmed."
+        "addressNote": "Sample offices in Doha, Muscat and Dubai. Contact details and opening hours are shown for demonstration only.",
+        "sampleEmail": "hello@autoflow.example",
+        "offices": [
+          {
+            "name": "Doha, Qatar",
+            "address": "Office 101, Sample Business Centre, Doha, Qatar",
+            "phone": "+974 0000 0000"
+          },
+          {
+            "name": "Muscat, Oman",
+            "address": "Office 202, Sample Business Centre, Muscat, Oman",
+            "phone": "+968 0000 0000"
+          },
+          {
+            "name": "Dubai, UAE",
+            "address": "Office 303, Sample Business Centre, Dubai, United Arab Emirates",
+            "phone": "+971 00 000 0000"
+          }
+        ],
+        "sampleHours": "Daily: 9:00 AM–6:00 PM (local office time)"
       },
       "service-request": {
         "eyebrow": "Service appointment enquiry",
@@ -264,7 +282,7 @@ export const dictionaries = {
       "copyright": "أوتوفلو الخليج. عالم سيارات مترابط.",
       "footerText": "موقع تعريفي لتجربة سيارات مترابطة. تُدار العمليات التشغيلية عبر تطبيقات زوهو ون.",
       "futureNote": "القدرات المعروضة مقترحة. يجب تأكيد إعدادات زوهو وتوفر الخدمات قبل استخدامها.",
-      "noContact": "ستُنشر بيانات التواصل الرسمية بعد التحقق منها.",
+      "noContact": "بيانات تواصل تجريبية للعرض فقط.",
       "photoAlt": "مركبة دون علامة تجارية في مشهد مستوحى من بيئة الخليج",
       "workshopAlt": "صورة توضيحية لفحص مركبة داخل ورشة مهنية"
     },
@@ -393,8 +411,26 @@ export const dictionaries = {
         "phone": "هاتف العمل",
         "branches": "الفروع والمواقع",
         "hours": "ساعات العمل",
-        "pending": "بانتظار التأكيد",
-        "addressNote": "لم يُقدَّم عنوان عمل موثّق بعد. ستُضاف الخريطة بعد تأكيد الموقع."
+        "addressNote": "مكاتب تجريبية في الدوحة ومسقط ودبي. بيانات التواصل وساعات العمل المعروضة لأغراض العرض فقط.",
+        "sampleEmail": "hello@autoflow.example",
+        "offices": [
+          {
+            "name": "الدوحة، قطر",
+            "address": "مكتب ١٠١، مركز أعمال تجريبي، الدوحة، قطر",
+            "phone": "+974 0000 0000"
+          },
+          {
+            "name": "مسقط، عُمان",
+            "address": "مكتب ٢٠٢، مركز أعمال تجريبي، مسقط، عُمان",
+            "phone": "+968 0000 0000"
+          },
+          {
+            "name": "دبي، الإمارات",
+            "address": "مكتب ٣٠٣، مركز أعمال تجريبي، دبي، الإمارات العربية المتحدة",
+            "phone": "+971 00 000 0000"
+          }
+        ],
+        "sampleHours": "يوميًا: من ٩ صباحًا إلى ٦ مساءً (بالتوقيت المحلي للمكتب)"
       },
       "service-request": {
         "eyebrow": "استفسار عن موعد خدمة",
