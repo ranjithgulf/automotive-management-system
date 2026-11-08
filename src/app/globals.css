@@ -2,5 +2,4 @@
 
 @theme inline {
   --font-sans: var(--font-geist-sans), Arial, sans-serif;
-  --font-mono: var(--font-geist-mono), monospace;
 }

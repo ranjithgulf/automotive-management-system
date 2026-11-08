@@ -1,5 +1,7 @@
 # AutoFlow GCC public website rebuild
 
+The 5 November cleanup and request-flow update is recorded in [repository-audit.md](repository-audit.md). The [Zoho handoff](zoho-integration-handoff.md) documents the new fail-closed Pages Function and the six bilingual enquiry contracts. The static website and default demo behavior remain intact; no live CRM, Desk, SalesIQ or Books integration is claimed.
+
 ## Scope
 
 AutoFlow GCC now has a public showcase website. Zoho One remains the intended operational platform. The website does not manage CRM records, workshop jobs, inventory, finance, HR, approvals, or user administration.
@@ -110,11 +112,11 @@ Confirm company information, actual services, contact details, locations, busine
 
 ## Completed verification
 
-Static Pages preparation rechecked on 5 November 2026 using Node 24.22.1 and Next.js 16.4.3: production export passed (40 build entries), all 10 website tests and ESLint passed, and all 35 public URLs returned HTTP 200 with the correct language/direction. Chrome checks of English/Arabic navigation, locale preservation, catalog search/filtering/load-more, galleries, form validation/demo success/error, and mobile menus/dialogs passed after the Windows preview filename fix. No failed browser requests, uncaught errors, or outgoing form POSTs remained. A scan of 234 exported text assets found none of the configured private database/Zoho credential values. `SITE_URL` was intentionally unset; no canonical origin was invented and the sitemap had no URL entries. Cloudflare dashboard settings and the actual Pages origin still require configuration at deployment.
+Static Pages and the request-flow update were verified on 5 November 2026 with Node 24.22.1 / Next.js 16.4.3: 42 static build entries, 18 passing website/integration tests, clean ESLint, and successful Wrangler Pages Function compilation. All 37 public routes and 50 page/viewport combinations passed. All six form types were exercised in both languages, including validation, duplicate-click prevention, demo loading/success/error and data retention. There were no uncaught browser errors, failed browser requests or outgoing demo POSTs. The final secret re-scan covered 59 source text files, 94 historical blobs, 247 exported text files and the compiled Function; neither the local private database URL nor its password was found. SITE_URL remains unset pending verified deployment. See the audit for exact limitations and the development-only dependency advisory.
 
 - ESLint and the static production build pass.
-- Ten automated tests cover dictionary parity, locale routes, catalog filters/sorting, editorial scope, local image references, validation, Arabic phone digits, mock submission behavior, safe SEO metadata, and removal of internal routes.
-- All 34 localized public routes returned HTTP 200 with the correct HTML language; old Login, Dashboard, Sales, API and Settings routes returned 404.
+- Eighteen automated tests cover dictionary parity, locale routes, catalog filters/sorting, editorial scope, local image references, validation, Arabic phone digits, mock submission behavior, safe SEO metadata, and removal of internal routes.
+- All 36 localized public routes returned HTTP 200 with the correct HTML language; old Login, Dashboard, Sales, API and Settings routes returned 404.
 - Main pages were checked in both languages at 320, 768, 1024, 1280, and 1536 pixels against the real document client width, with no page overflow.
 - Vehicle/test-drive dialogs, navigation drawers and the SalesIQ placeholder were checked at 320, 375, 768 and 1280 pixels in both languages. Rapid dialog switching also passed.
 - Browser checks covered search, empty results, load-more, galleries, preserved-route language switching, localized validation, loading/error/success, service and test-drive enquiries, and the inactive chat state. No uncaught exceptions or outgoing form POST requests were observed.

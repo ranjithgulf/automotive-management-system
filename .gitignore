@@ -40,3 +40,19 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Cloudflare local secrets and generated tooling
+.dev.vars*
+/.wrangler/
+/.open-next/
+/test-results/
+/playwright-report/
+*.key
+*.p12
+*.pfx
+
+# Nested private guard Worker local tooling
+**/.wrangler/
+
+# Original public photos retained during asset optimization
+/.asset-backups/

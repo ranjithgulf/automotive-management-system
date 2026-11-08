@@ -1,3 +1,5 @@
+import Breadcrumbs from "@/components/website/breadcrumbs";
+import StructuredData from "@/components/website/structured-data";
 import { notFound } from "next/navigation";
 import { websitePages, locales } from "@/config/website";
 import { getDictionary } from "@/lib/website/dictionaries";
@@ -17,7 +19,7 @@ export async function generateMetadata({ params }) {
   const vehicle = slug[0] === "vehicles" && slug[1] ? await getVehicle(slug[1]) : null;
   return websiteMetadata(locale, slug[0] || "home", vehicle);
 }
-export default async function WebsitePage({ params }) {
+async function WebsitePage({ params }) {
   const { locale, slug = [] } = await params;
   const [page = "home", id] = slug;
   if (!locales.includes(locale) || slug.length > 2 || (page !== "home" && !websitePages.includes(page)) || (id && page !== "vehicles")) notFound();
@@ -30,7 +32,13 @@ export default async function WebsitePage({ params }) {
     return <VehicleDetailsPage {...props} vehicle={vehicle} vehicles={await getVehicles()} />;
   }
   if (page === "vehicles") return <><PageIntro content={dictionary.pages.vehicles} /><VehicleList {...props} vehicles={await getVehicles()} /></>;
-  const Pages = { about: AboutPage, solutions: SolutionsPage, services: ServicesPage, "parts-accessories": PartsPage, "fleet-corporate": FleetPage, contact: ContactPage, "service-request": ContactPage };
+  const Pages = { about: AboutPage, solutions: SolutionsPage, services: ServicesPage, "parts-accessories": PartsPage, "fleet-corporate": FleetPage, contact: ContactPage, "service-request": ContactPage, "customer-support": ContactPage };
   const Component = Pages[page];
-  return <Component {...props} service={page === "service-request"} />;
+  return <Component {...props} service={page === "service-request"} support={page === "customer-support"} />;
+}
+
+export default async function Page(props) {
+  const { locale, slug = [] } = await props.params;
+  const vehicle = slug[0] === "vehicles" && slug[1] ? await getVehicle(slug[1]) : undefined;
+  return <><StructuredData locale={locale} page={slug[0] || "home"} vehicle={vehicle} /><Breadcrumbs locale={locale} page={slug[0] || "home"} vehicle={vehicle} />{await WebsitePage(props)}</>;
 }

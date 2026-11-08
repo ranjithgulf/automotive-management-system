@@ -1,5 +1,5 @@
-// The current application uses mock auth and sample data, so no models are
-// needed yet. Add models only when a module requires persistent records.
+// Dormant local diagnostic foundation, retained for the explicit db:* scripts.
+// The public website has no database models. Zoho owns business records.
 generator client {
   provider   = "prisma-client-js"
   engineType = "client"

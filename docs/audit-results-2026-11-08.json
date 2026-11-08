@@ -1,0 +1,46 @@
+{
+  "date": "2026-11-08",
+  "environment": "Local static preview, Lighthouse default simulated mobile; not field Core Web Vitals",
+  "before": {
+    "lighthouse": "13.6.0",
+    "scores": {
+      "performance": 68,
+      "accessibility": 97,
+      "best-practices": 77,
+      "seo": 100
+    },
+    "metrics": {
+      "first-contentful-paint": 1540.7413,
+      "largest-contentful-paint": 7689.111949999999,
+      "cumulative-layout-shift": 0,
+      "total-blocking-time": 329.12934999999993,
+      "server-response-time": 36
+    }
+  },
+  "after": {
+    "lighthouse": "13.6.0",
+    "scores": {
+      "performance": 74,
+      "accessibility": 100,
+      "best-practices": 77,
+      "seo": 100
+    },
+    "metrics": {
+      "first-contentful-paint": 1561.8005,
+      "largest-contentful-paint": 6165.401499999999,
+      "cumulative-layout-shift": 0,
+      "total-blocking-time": 203.5,
+      "server-response-time": 5
+    }
+  },
+  "validation": {
+    "tests": 70,
+    "routes": 37,
+    "canonicalUrls": 36,
+    "responsiveChecks": 60,
+    "formWorkflows": 14,
+    "vehicleDialogs": 6,
+    "productionVulnerabilities": 0,
+    "developmentModerateVulnerabilities": 8
+  }
+}

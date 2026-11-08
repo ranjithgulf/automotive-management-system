@@ -11,7 +11,7 @@
     "db:generate": "prisma generate",
     "db:check": "node scripts/db-check.mjs",
     "db:push": "prisma db push",
-    "test:website": "node --test tests/website.test.mjs"
+    "test:website": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.1",

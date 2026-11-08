@@ -23,7 +23,7 @@ test("English and Arabic have identical, populated content keys", () => {
 });
 
 test("public navigation and every vehicle have unique locale-aware routes", () => {
-  assert.equal(mainNavigation.length, 8);
+  assert.equal(mainNavigation.length, 9);
   for (const locale of locales) {
     const routes = ["home", ...websitePages, ...vehicles.map((v) => `vehicles/${v.id}`)].map((p) => pagePath(locale, p));
     assert.equal(routes.length, new Set(routes).size);
@@ -51,10 +51,10 @@ test("mock editorial data contains all requested verticals and service categorie
   for (const item of [...vehicles, ...solutions, ...parts]) assert.ok(existsSync(`public/images/${item.image}.webp`));
 });
 
-const options = { types: [{ value: "general" }], methods: [{ value: "email" }], branches: [{ value: "dubai" }], services: [{ value: "maintenance" }] };
-const valid = { name: "Huda Al Suwaidi", email: "huda@example.com", phone: "+971 50 555 0101", type: "general", message: "Please share the next steps for a vehicle enquiry.", method: "email", brand: "Toyota", model: "Camry", branch: "dubai", service: "maintenance", date: "2026-11-03", time: "10:30" };
+const options = { categories: [{ value: "general" }], types: [{ value: "general" }], methods: [{ value: "email" }], branches: [{ value: "dubai" }], services: [{ value: "maintenance" }] };
+const valid = { interest: "Toyota Camry", category: "general", subject: "A demonstration question", name: "Huda Al Suwaidi", email: "huda@example.com", phone: "+971 50 555 0101", type: "general", message: "Please share the next steps for a vehicle enquiry.", method: "email", brand: "Toyota", model: "Camry", branch: "dubai", service: "maintenance", date: "2026-11-03", time: "10:30" };
 test("all enquiry forms validate required fields, choices and contact information", () => {
-  for (const kind of ["contact", "vehicle", "drive", "service"]) {
+  for (const kind of ["contact", "vehicle", "drive", "quotation", "service", "support"]) {
     const fields = formFields(kind);
     assert.deepEqual(validateEnquiry(valid, fields, options, "2026-11-02"), {});
     assert.ok(validateEnquiry({}, fields, options, "2026-11-02").name);
@@ -113,5 +113,41 @@ test("public site origin rejects unsafe or non-origin configuration", () => {
   } finally {
     if (previous === undefined) delete process.env.SITE_URL;
     else process.env.SITE_URL = previous;
+  }
+});
+
+test("production metadata uses HTTPS origins and keeps loopback previews available", () => {
+  const previous = process.env.SITE_URL;
+  try {
+    process.env.SITE_URL = "http://autoflow.example";
+    assert.equal(siteOrigin(), null);
+    process.env.SITE_URL = "http://127.0.0.1:4317";
+    assert.equal(siteOrigin(), "http://127.0.0.1:4317");
+  } finally {
+    if (previous === undefined) delete process.env.SITE_URL; else process.env.SITE_URL = previous;
+  }
+});
+
+test("every localized page has unique factual metadata and consistent branded sharing assets", () => {
+  const previous = process.env.SITE_URL;
+  try {
+    process.env.SITE_URL = "https://autoflow.example";
+    const titles = new Set(), descriptions = new Set();
+    for (const locale of locales) {
+      const entries = ["home", ...websitePages].map((page) => websiteMetadata(locale, page));
+      entries.push(...vehicles.map((v) => websiteMetadata(locale, "vehicles", v)));
+      for (const meta of entries) {
+        assert.ok(meta.title && meta.description);
+        assert.ok(!titles.has(meta.title), meta.title); titles.add(meta.title);
+        assert.ok(!descriptions.has(meta.description), meta.description); descriptions.add(meta.description);
+        assert.match(meta.alternates.canonical, /^https:\/\/autoflow\.example\/(en|ar)\//);
+        assert.deepEqual(meta.robots, { index: true, follow: true });
+        assert.equal(meta.openGraph.images[0].width, 1200);
+        assert.equal(meta.openGraph.images[0].height, 630);
+        assert.equal(meta.twitter.images[0], meta.openGraph.images[0].url);
+      }
+    }
+  } finally {
+    if (previous === undefined) delete process.env.SITE_URL; else process.env.SITE_URL = previous;
   }
 });

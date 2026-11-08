@@ -1,0 +1,23 @@
+{
+  "name": "autoflow-enquiry-guard",
+  "main": "worker.js",
+  "compatibility_date": "2026-11-06",
+  "workers_dev": false,
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "STATE",
+        "class_name": "EnquiryGuard"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": [
+        "EnquiryGuard"
+      ]
+    }
+  ],
+  "preview_urls": false
+}
