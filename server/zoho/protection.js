@@ -79,6 +79,9 @@ export async function verifyTurnstile(packet, env, { origin, ip, fetchImpl = fet
     });
     result = await response.json();
   } catch { throw new ZohoError("unavailable"); }
-  if (!response.ok) throw new ZohoError("unavailable");
+  if (!response.ok || !result || typeof result !== "object" || Array.isArray(result)) throw new ZohoError("unavailable");
+  const errorCodes = Array.isArray(result["error-codes"]) ? result["error-codes"] : [];
+  if (errorCodes.some((code) => ["missing-input-secret", "invalid-input-secret"].includes(code))) throw unconfigured();
+  if (errorCodes.includes("internal-error")) throw new ZohoError("unavailable");
   if (result.success !== true || result.hostname !== new URL(origin).hostname || result.action !== env.ENQUIRY_TURNSTILE_ACTION) throw new ZohoError("challenge_failed", { status: 403 });
 }

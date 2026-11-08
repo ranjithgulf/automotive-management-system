@@ -44,3 +44,7 @@ The existing ignored .env and dormant PostgreSQL/Prisma foundation were retained
 ## Branding, image delivery and SEO audit
 
 See [the completed audit and measured limitations](docs/branding-performance-seo-audit.md), [brand assets and usage](docs/brand-guidelines.md), and [sanitized before/after results](docs/audit-results-2026-11-08.json). Original photo backups are retained locally in the ignored .asset-backups directory.
+
+## Complete form and live-integration audit
+
+See [the latest form/Zoho audit](docs/complete-form-zoho-audit-2026-11-08.md) and [sanitized evidence](docs/complete-form-zoho-evidence-2026-11-08.json). Live record creation is NOT TESTED; business approvals and Preview access remain pending. The exposed Turnstile secret requires owner rotation.

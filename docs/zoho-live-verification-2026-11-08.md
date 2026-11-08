@@ -1,5 +1,7 @@
 # AutoFlow GCC: live connection verification
 
+> Later update: see [complete form audit](complete-form-zoho-audit-2026-11-08.md). The public Function now returns GET 405 and all routes return 200, while live mode remains pending. That report also documents the Turnstile secret exposure and scope limitations. Earlier endpoint findings below are historical.
+
 Date: 8 November 2026.
 
 ## Verified with real Zoho requests

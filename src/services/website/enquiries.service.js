@@ -32,7 +32,11 @@ async function postSubmission(packet, fetchImpl) {
     const result = await response.json().catch(() => null);
     if (!response.ok) {
       const phaseCodes = { result_unknown: "resultUnknown", in_progress: "inProgress", idempotency_conflict: "idempotencyConflict", challenge_failed: "challengeFailed", invalid: "validation", provider_validation: "validation" };
-      throw new EnquirySubmissionError(packet.version === 2 ? phaseCodes[result?.code] || "unavailable" : "unavailable");
+      // A gateway can fail after the upstream request created a record.
+      // Only explicit application failures are known to be safe to retry.
+      const definiteFailure = ["integration_unconfigured", "unavailable", "contact_ambiguous"].includes(result?.code);
+      const fallback = response.status >= 500 && !definiteFailure ? "resultUnknown" : "unavailable";
+      throw new EnquirySubmissionError(packet.version === 2 ? phaseCodes[result?.code] || fallback : "unavailable");
     }
     if (result?.ok !== true || result?.delivered !== true) throw new EnquirySubmissionError(packet.version === 2 ? "resultUnknown" : "unavailable");
     return { mode: "live", delivered: true, confirmed: packet.version === 2 ? false : result.confirmed === true };

@@ -89,7 +89,10 @@ test("deployment stays static, examples are empty and local secrets/generated fi
   assert.equal(readFileSync(".node-version", "utf8").trim(), "24");
   const routes = JSON.parse(readFileSync("public/_routes.json", "utf8"));
   assert.deepEqual(routes.include, ["/api/enquiries"]);
-  for (const line of readFileSync(".env.example", "utf8").split("\n").filter((line) => /^[A-Z_]+=/.test(line))) assert.match(line, /^[A-Z_]+=$/);
+  for (const line of readFileSync(".env.example", "utf8").split("\n").filter((line) => /^[A-Z_]+=/.test(line))) {
+    const key = line.slice(0, line.indexOf("="));
+    assert.ok(line.trimEnd() === key + "=", "Example variable " + key + " must contain an empty placeholder; value redacted.");
+  }
   const tracked = execFileSync("git", ["ls-files"], { encoding: "utf8" }).split("\n");
   assert.ok(!tracked.some((file) => /^(\.env$|\.env\.local$|\.dev\.vars|\.next\/|out\/|node_modules\/|\.wrangler\/)/.test(file)));
   for (const file of [".env", ".env.local", ".dev.vars", ".dev.vars.production", ".wrangler/state/example", "workers/enquiry-guard/.wrangler/state/example", ".next/cache/example", "out/index.html"]) assert.equal(execFileSync("git", ["check-ignore", file], { encoding: "utf8" }).trim(), file);
